@@ -20,40 +20,40 @@ from .func import *
 #                          nn.BatchNorm1d(out_planes))
 
 
-class MSTE(nn.Module):
-    def __init__(self, in_planes, out_planes, part_num):
-        super(MSTE, self).__init__()
-        self.in_planes = in_planes
-        self.out_planes = out_planes
-        self.part_num = part_num
+# class MSTE(nn.Module):
+#     def __init__(self, in_planes, out_planes, part_num):
+#         super(MSTE, self).__init__()
+#         self.in_planes = in_planes
+#         self.out_planes = out_planes
+#         self.part_num = part_num
 
-        self.score = mlp_sigmoid(in_planes * part_num, in_planes * part_num, 1,
-                                 groups=part_num)
-        self.short_term = nn.ModuleList(
-            [conv_bn(in_planes * part_num, out_planes * part_num, 3, padding=1, groups=part_num),
-             conv_bn(in_planes * part_num, out_planes * part_num, 3, padding=1,
-                     groups=part_num)])
+#         self.score = mlp_sigmoid(in_planes * part_num, in_planes * part_num, 1,
+#                                  groups=part_num)
+#         self.short_term = nn.ModuleList(
+#             [conv_bn(in_planes * part_num, out_planes * part_num, 3, padding=1, groups=part_num),
+#              conv_bn(in_planes * part_num, out_planes * part_num, 3, padding=1,
+#                      groups=part_num)])
 
-    def get_frame_level(self, x):
-        return x
+#     def get_frame_level(self, x):
+#         return x
 
-    def get_short_term(self, x):
-        n, p, c, s = x.size()
-        temp = self.short_term[0](x.view(n, -1, s))
-        short_term_feature = temp + self.short_term[1](temp)
+#     def get_short_term(self, x):
+#         n, p, c, s = x.size()
+#         temp = self.short_term[0](x.view(n, -1, s))
+#         short_term_feature = temp + self.short_term[1](temp)
 
-        return short_term_feature.view(n, p, c, s)
+#         return short_term_feature.view(n, p, c, s)
 
-    def get_long_term(self, x):
-        n, p, c, s = x.size()
-        pred_score = self.score(x.view(n, -1, s)).view(n, p, c, s)
-        long_term_feature = x.mul(pred_score).sum(-1).div(pred_score.sum(-1))
-        long_term_feature = long_term_feature.unsqueeze(3).repeat(1, 1, 1, s)
+#     def get_long_term(self, x):
+#         n, p, c, s = x.size()
+#         pred_score = self.score(x.view(n, -1, s)).view(n, p, c, s)
+#         long_term_feature = x.mul(pred_score).sum(-1).div(pred_score.sum(-1))
+#         long_term_feature = long_term_feature.unsqueeze(3).repeat(1, 1, 1, s)
 
-        return long_term_feature
+#         return long_term_feature
 
-    def forward(self, x):
-        return self.get_frame_level(x), self.get_short_term(x), self.get_long_term(x)
+#     def forward(self, x):
+#         return self.get_frame_level(x), self.get_short_term(x), self.get_long_term(x)
 
 
 class ATA(nn.Module):
